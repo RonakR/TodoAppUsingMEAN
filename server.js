@@ -84,7 +84,7 @@ app.delete('/api/todos/:todo_id', function(req, res) {
       Todo.find(function(err, todos) {
         if(err)
           res.send(err)
-        res.join(todos);
+        res.json(todos);
       });
   });
 });
