@@ -8,7 +8,6 @@
 
 // Server ======================================================================
 // Set up
-console.log("here");
 var express = require('express');
 var app = express();                                 //Create the app w/ express
 var mongoose = require('mongoose');                  //mongoose for mongodb
@@ -37,7 +36,8 @@ console.log("App listening on post 8080");
 
 // Routes ======================================================================
 
-// api
+// API -------------------------------------------------------------------------
+
 // get all todos
 app.get('/api/todos', function(req, res) {
 
@@ -87,4 +87,9 @@ app.delete('/api/todos/:todo_id', function(req, res) {
         res.join(todos);
       });
   });
+});
+
+// Application -----------------------------------------------------------------
+app.get('*', function(req, res) {
+  res.sendfile('./public/index.html'); //load the single view file (angular will handle the page changes on the frontend)
 });
