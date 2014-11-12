@@ -1,95 +1,91 @@
-// This is the file where I:
-// -Configure the application
-// -Connect to the database
-// -Create the Mongoose models
-// -Define routes for the RESTful API
-// -Define routes for the frontend Angular application
-// -Set the app to listen on a port so we can view it on the browser
+//server.js
 
-// Server ======================================================================
-// Set up
-var express = require('express');
-var app = express();                                 //Create the app w/ express
-var mongoose = require('mongoose');                  //mongoose for mongodb
+   //set up =========================
+    var express  = require('express');
+    var app      = express();                               // create our app w/ express
+    var mongoose = require('mongoose');                     // mongoose for mongodb
+    var morgan = require('morgan');             // log requests to the console (express4)
+    var bodyParser = require('body-parser');    // pull information from HTML POST (express4)
+    var methodOverride = require('method-override'); // simulate DELETE and PUT (express4)
 
-// configuration
-mongoose.connect('mongodb://localhost:27017');       // connect to mongoDB
+    // configuration =================
 
-app.configure(function() {
-  app.use(express.static(__dirname + '/public'));    // set the static files location /public/img will be /img for users
-  app.use(express.logger('dev'));                    // log every request to the console
-  app.use(express.bodyParser());                     // pull information from html in POST
-});
+    mongoose.connect('mongodb://localhost');     // connect to mongoDB database on modulus.io
 
-// define model
-var Todo = mongoose.model('Todo', {
-  text : String
-})
+    app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
+    app.use(morgan('dev'));                                         // log every request to the console
+    app.use(bodyParser.urlencoded({'extended':'true'}));            // parse application/x-www-form-urlencoded
+    app.use(bodyParser.json());                                     // parse application/json
+    app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse application/vnd.api+json as json
+    app.use(methodOverride());
 
 
-
-// listen (start app with node server.js)
-app.listen(8080);
-console.log("App listening on post 8080");
-
-
-
-// Routes ======================================================================
-
-// API -------------------------------------------------------------------------
-
-// get all todos
-app.get('/api/todos', function(req, res) {
-
-  // use mongoose to get all todos in the database
-  Todo.find(function(err, todos) {
-
-    // if there is an error retrieving, send the error, nothing after res.send(err) will execute
-    if (err)
-      res.send(err)
-
-    res.json(todos); //return all todos in JSON format
-  });
-});
-
-
-// create a todo and send back all todos after creation
-app.post('/api/todos', function(req, res) {
-
-  //create a todo, information comes from AJAX request from Angular
-  Todo.create({
-    text : req.body.text,
-    done : false
-  }, function(err, todo) {
-      if (err) res.send(err);
-
-      //get and return all the todos after you create another
-      Todo.find(function(err, todos) {
-        if (err) res.send(err)
-        res.json(todos);
+  // define model =================
+      var Todo = mongoose.model('Todo', {
+          text : String
       });
-  });
-});
 
-// delete a todo
 
-app.delete('/api/todos/:todo_id', function(req, res) {
+  // routes ======================================================================
 
-  Todo.remove({
-    _id : req.params.todo_id
-  }, function(err, todo) {
-      if (err)
-        res.send(err);
+      // api ---------------------------------------------------------------------
+      // get all todos
+      app.get('/api/todos', function(req, res) {
 
-      Todo.find(function(err, todos) {
-        if(err)
-          res.send(err)
-        res.json(todos);
+          // use mongoose to get all todos in the database
+          Todo.find(function(err, todos) {
+
+              // if there is an error retrieving, send the error. nothing after res.send(err) will execute
+              if (err)
+                  res.send(err)
+
+              res.json(todos); // return all todos in JSON format
+          });
       });
-  });
-});
 
-// Application -----------------------------------------------------------------
-app.get('*', function(req, res) {
-  res.sendfile('./public/index.html'); //load the single view file (angular will handle the page changes on the frontend)
-});
+      // create todo and send back all todos after creation
+      app.post('/api/todos', function(req, res) {
+
+          // create a todo, information comes from AJAX request from Angular
+          Todo.create({
+              text : req.body.text,
+              done : false
+          }, function(err, todo) {
+              if (err)
+                  res.send(err);
+
+              // get and return all the todos after you create another
+              Todo.find(function(err, todos) {
+                  if (err)
+                      res.send(err)
+                  res.json(todos);
+              });
+          });
+
+      });
+
+      // delete a todo
+      app.delete('/api/todos/:todo_id', function(req, res) {
+          Todo.remove({
+              _id : req.params.todo_id
+          }, function(err, todo) {
+              if (err)
+                  res.send(err);
+
+              // get and return all the todos after you create another
+              Todo.find(function(err, todos) {
+                  if (err)
+                      res.send(err)
+                  res.json(todos);
+              });
+          });
+      });
+
+  // application -------------------------------------------------------------
+      app.get('*', function(req, res) {
+          res.sendfile('./public/index.html'); // load the single view file (angular will handle the page changes on the front-end)
+      });
+
+// listen (start app with node server.js) ======================================
+    app.listen(8080);
+    console.log("App listening on port 8080");
